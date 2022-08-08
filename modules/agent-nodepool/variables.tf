@@ -36,7 +36,7 @@ variable "tags" {
 variable "iam_instance_profile" {
   description = "Node pool IAM Instance Profile, created if left blank (default behavior)"
   type        = string
-  default     = ""
+  default     = "LabInstanceProfile"
 }
 
 variable "iam_permissions_boundary" {

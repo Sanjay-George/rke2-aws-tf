@@ -15,9 +15,9 @@ locals {
   }
 }
 
-#
-# IAM Role & Policies
-#
+# #
+# # IAM Role & Policies
+# #
 module "iam" {
   count = var.iam_instance_profile == "" ? 1 : 0
 
@@ -29,29 +29,29 @@ module "iam" {
   tags = merge({}, local.default_tags, var.tags)
 }
 
-resource "aws_iam_role_policy" "aws_ccm" {
-  count = var.iam_instance_profile == "" && var.enable_ccm ? 1 : 0
+# resource "aws_iam_role_policy" "aws_ccm" {
+#   count = var.iam_instance_profile == "" && var.enable_ccm ? 1 : 0
 
-  name   = "${local.name}-rke2-agent-aws-ccm"
-  role   = module.iam[count.index].role
-  policy = data.aws_iam_policy_document.aws_ccm[count.index].json
-}
+#   name   = "${local.name}-rke2-agent-aws-ccm"
+#   role   = module.iam[count.index].role
+#   policy = data.aws_iam_policy_document.aws_ccm[count.index].json
+# }
 
-resource "aws_iam_role_policy" "aws_autoscaler" {
-  count = var.iam_instance_profile == "" && var.enable_autoscaler ? 1 : 0
+# resource "aws_iam_role_policy" "aws_autoscaler" {
+#   count = var.iam_instance_profile == "" && var.enable_autoscaler ? 1 : 0
 
-  name   = "${local.name}-rke2-agent-aws-autoscaler"
-  role   = module.iam[count.index].role
-  policy = data.aws_iam_policy_document.aws_autoscaler[count.index].json
-}
+#   name   = "${local.name}-rke2-agent-aws-autoscaler"
+#   role   = module.iam[count.index].role
+#   policy = data.aws_iam_policy_document.aws_autoscaler[count.index].json
+# }
 
-resource "aws_iam_role_policy" "get_token" {
-  count = var.iam_instance_profile == "" ? 1 : 0
+# resource "aws_iam_role_policy" "get_token" {
+#   count = var.iam_instance_profile == "" ? 1 : 0
 
-  name   = "${local.name}-rke2-agent-aws-get-token"
-  role   = module.iam[count.index].role
-  policy = var.cluster_data.token.policy_document
-}
+#   name   = "${local.name}-rke2-agent-aws-get-token"
+#   role   = module.iam[count.index].role
+#   policy = var.cluster_data.token.policy_document
+# }
 
 #
 # RKE2 Userdata
@@ -117,7 +117,8 @@ module "nodepool" {
   extra_block_device_mappings = var.extra_block_device_mappings
   vpc_security_group_ids      = concat([var.cluster_data.cluster_sg], var.extra_security_group_ids)
   userdata                    = data.template_cloudinit_config.init.rendered
-  iam_instance_profile        = var.iam_instance_profile == "" ? module.iam[0].iam_instance_profile : var.iam_instance_profile
+  # iam_instance_profile        = var.iam_instance_profile == "" ? module.iam[0].iam_instance_profile : var.iam_instance_profile
+  iam_instance_profile        = "LabInstanceProfile"
   asg                         = var.asg
   spot                        = var.spot
   wait_for_capacity_timeout   = var.wait_for_capacity_timeout
