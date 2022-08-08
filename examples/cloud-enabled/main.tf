@@ -1,69 +1,22 @@
 provider "aws" {
-  region = local.aws_region
+  region = var.aws_region
 }
 
 locals {
-  cluster_name = "cloud-enabled"
-  aws_region   = "us-gov-west-1"
-
+  cluster_name = var.cluster_name
   tags = {
     "terraform" = "true",
     "env"       = "cloud-enabled",
   }
 }
 
-data "aws_ami" "rhel7" {
+data "aws_ami" "ubuntu_20_04" {
   most_recent = true
-  owners      = ["219670896067"] # owner is specific to aws gov cloud
+  # owners      = ["219670896067"] # owner is specific to aws gov cloud
 
   filter {
     name   = "name"
-    values = ["RHEL-7*"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-}
-
-data "aws_ami" "rhel8" {
-  most_recent = true
-  owners      = ["219670896067"] # owner is specific to aws gov cloud
-
-  filter {
-    name   = "name"
-    values = ["RHEL-8*"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-}
-
-data "aws_ami" "centos7" {
-  most_recent = true
-  owners      = ["345084742485"] # owner is specific to aws gov cloud
-
-  filter {
-    name   = "name"
-    values = ["CentOS Linux 7 x86_64 HVM EBS*"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-}
-
-data "aws_ami" "centos8" {
-  most_recent = true
-  owners      = ["345084742485"] # owner is specific to aws gov cloud
-
-  filter {
-    name   = "name"
-    values = ["CentOS Linux 8 x86_64 HVM EBS*"]
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20220610"]
   }
 
   filter {
@@ -93,7 +46,7 @@ module "vpc" {
   name = "rke2-${local.cluster_name}"
   cidr = "10.88.0.0/16"
 
-  azs             = ["${local.aws_region}a", "${local.aws_region}b", "${local.aws_region}c"]
+  azs             = ["${var.aws_region}a", "${var.aws_region}b", "${var.aws_region}c"]
   public_subnets  = ["10.88.1.0/24", "10.88.2.0/24", "10.88.3.0/24"]
   private_subnets = ["10.88.101.0/24", "10.88.102.0/24", "10.88.103.0/24"]
 
@@ -129,9 +82,9 @@ module "rke2" {
   vpc_id       = module.vpc.vpc_id
   subnets      = module.vpc.public_subnets # Note: Public subnets used for demo purposes, this is not recommended in production
 
-  ami                   = data.aws_ami.rhel8.image_id # Note: Multi OS is primarily for example purposes
+  ami                   = data.aws_ami.ubuntu_20_04.image_id # Note: Multi OS is primarily for example purposes
   ssh_authorized_keys   = [tls_private_key.ssh.public_key_openssh]
-  instance_type         = "t3a.medium"
+  instance_type         = var.instance_type
   controlplane_internal = false # Note this defaults to best practice of true, but is explicitly set to public for demo purposes
   servers               = 1
 
@@ -141,7 +94,7 @@ module "rke2" {
   rke2_config = <<-EOT
 node-label:
   - "name=server"
-  - "os=rhel8"
+  - "os=ubuntu20.04"
 EOT
 
   tags = local.tags
@@ -157,11 +110,11 @@ module "agents" {
   vpc_id  = module.vpc.vpc_id
   subnets = module.vpc.public_subnets # Note: Public subnets used for demo purposes, this is not recommended in production
 
-  ami                 = data.aws_ami.rhel8.image_id # Note: Multi OS is primarily for example purposes
+  ami                 = data.aws_ami.ubuntu_20_04.image_id # Note: Multi OS is primarily for example purposes
   ssh_authorized_keys = [tls_private_key.ssh.public_key_openssh]
   spot                = true
   asg                 = { min : 1, max : 10, desired : 2 }
-  instance_type       = "t3a.large"
+  instance_type       = var.instance_type
 
   # Enable AWS Cloud Controller Manager and Cluster Autoscaler
   enable_ccm        = true
@@ -170,7 +123,7 @@ module "agents" {
   rke2_config = <<-EOT
 node-label:
   - "name=generic"
-  - "os=rhel8"
+  - "os=ubuntu20.04"
 EOT
 
   cluster_data = module.rke2.cluster_data

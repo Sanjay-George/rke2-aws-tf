@@ -42,7 +42,7 @@ variable "ami" {
 variable "iam_instance_profile" {
   description = "Server pool IAM Instance Profile, created if left blank (default behavior)"
   type        = string
-  default     = ""
+  default     = "LabInstanceProfile"
 }
 
 variable "iam_permissions_boundary" {

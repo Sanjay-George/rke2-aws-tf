@@ -24,7 +24,7 @@ resource "random_string" "uid" {
   special = false
   lower   = true
   upper   = false
-  number  = true
+  numeric  = true
 }
 
 #
@@ -144,7 +144,8 @@ resource "aws_iam_role_policy" "aws_required" {
   count = var.iam_instance_profile == "" ? 1 : 0
 
   name   = "${local.uname}-rke2-server-aws-introspect"
-  role   = module.iam[count.index].role
+  # role   = module.iam[count.index].role
+  role   = "LabRole"
   policy = data.aws_iam_policy_document.aws_required[count.index].json
 }
 
