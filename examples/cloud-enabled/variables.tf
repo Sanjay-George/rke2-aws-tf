@@ -5,7 +5,7 @@ variable "aws_region" {
 
 variable "cluster_name" {
     type = string
-    default = "k8"
+    default = "dev"
 }
 
 variable "instance_type" {

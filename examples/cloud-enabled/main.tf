@@ -113,7 +113,7 @@ module "agents" {
   ami                 = data.aws_ami.ubuntu_20_04.image_id # Note: Multi OS is primarily for example purposes
   ssh_authorized_keys = [tls_private_key.ssh.public_key_openssh]
   spot                = true
-  asg                 = { min : 1, max : 10, desired : 2 }
+  asg                 = { min : 3, max : 10, desired : 5 }
   instance_type       = var.instance_type
 
   # Enable AWS Cloud Controller Manager and Cluster Autoscaler

@@ -70,7 +70,7 @@ variable "extra_block_device_mappings" {
 variable "servers" {
   description = "Number of servers to create"
   type        = number
-  default     = 1
+  default     = 3
 }
 
 variable "spot" {
